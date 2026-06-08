@@ -1,7 +1,6 @@
 import Card from './components/Card'
 import logo from './assets/logo.png'
 
-
 function App(){
   return (
     <div className="font-sans text-white min-h-screen flex flex-col">

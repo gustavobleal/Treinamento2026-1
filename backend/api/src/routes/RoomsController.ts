@@ -1,33 +1,30 @@
 import type { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
+import { z } from 'zod'
+
+const roomSchema = z.object({
+  nome: z.string().min(5).max(50),
+  capacidade: z.number().min(1).max(200),
+  local: z.string().min(3).max(100),
+  descricao: z.string().min(10).max(255)
+})
 
 export default async function roomsController(app: FastifyInstance) {
 
   app.get('/rooms', async () => {
     const rooms = await prisma.room.findMany()
     return rooms
-  
   })
 
   app.post('/rooms', async (request, reply) => {
-    const { nome, capacidade, local, descricao } = request.body as {
-      nome: string
-      capacidade: number
-      local: string
-      descricao: string
-    }
+    const result = roomSchema.safeParse(request.body)
 
-    if (!nome || !capacidade || !local || !descricao) {
-      return reply.status(400).send({ error: 'Todos os campos são obrigatórios'})
+    if (!result.success) {
+      return reply.status(400).send({ errors: result.error.format() })
     }
 
     const room = await prisma.room.create({
-      data: {
-        nome,
-        capacidade,
-        local,
-        descricao
-      }
+      data: result.data
     })
 
     return reply.status(201).send(room)
@@ -42,20 +39,15 @@ export default async function roomsController(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Sala não encontrada'})
     }
 
-    const { nome, capacidade, local, descricao } = request.body as {
-      nome: string
-      capacidade: number
-      local: string
-      descricao: string
+    const result = roomSchema.safeParse(request.body)
+
+    if (!result.success) {
+      return reply.status(400).send({ errors: result.error.format() })
     }
 
-    const room = await prisma.room.update({ where: { id: Number(id) },
-      data: {
-        nome,
-        capacidade,
-        local,
-        descricao
-      }
+    const room = await prisma.room.update({
+      where: { id: Number(id) },
+      data: result.data
     })
 
     return reply.send(room)

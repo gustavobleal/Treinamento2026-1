@@ -59,5 +59,5 @@ export async function roomRoutes(app: FastifyInstance) {
 
     await prisma.room.delete({ where: { id: idNum } });
     return reply.status(200).send({ message: "Sala removida com sucesso!" });
-  });
+  });  
 }
